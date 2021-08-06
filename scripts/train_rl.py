@@ -22,7 +22,7 @@ from babyai.arguments import ArgumentParser
 from babyai.model import ACModel
 from babyai.evaluate import batch_evaluate
 from babyai.utils.agent import ModelAgent
-from gym_minigrid.wrappers import RGBImgPartialObsWrapper
+from gym_minigrid.wrappers import RGBImgObsWrapper, RGBImgPartialObsWrapper
 
 
 # Parse arguments
@@ -45,6 +45,8 @@ parser.add_argument("--ppo-epochs", type=int, default=4,
                     help="number of epochs for PPO (default: 4)")
 parser.add_argument("--save-interval", type=int, default=50,
                     help="number of updates between two saves (default: 50, 0 means no saving)")
+parser.add_argument("--observability", default='partial',
+                    help="environment observability")
 args = parser.parse_args()
 
 utils.seed(args.seed)
@@ -55,7 +57,10 @@ use_pixel = 'pixel' in args.arch
 for i in range(args.procs):
     env = gym.make(args.env)
     if use_pixel:
-        env = RGBImgPartialObsWrapper(env)
+        if args.observability == 'partial':
+            env = RGBImgPartialObsWrapper(env)
+        elif args.observability == 'full':
+            env = RGBImgObsWrapper(env)
     env.seed(100 * args.seed + i)
     envs.append(env)
 
@@ -65,6 +70,7 @@ instr = args.instr_arch if args.instr_arch else "noinstr"
 mem = "mem" if not args.no_mem else "nomem"
 model_name_parts = {
     'env': args.env,
+    'obs': args.observability,
     'algo': args.algo,
     'arch': args.arch,
     'instr': instr,
@@ -73,7 +79,7 @@ model_name_parts = {
     'info': '',
     'coef': '',
     'suffix': suffix}
-default_model_name = "{env}_{algo}_{arch}_{instr}_{mem}_seed{seed}{info}{coef}_{suffix}".format(**model_name_parts)
+default_model_name = "{env}_{obs}_{algo}_{arch}_{instr}_{mem}_seed{seed}{info}{coef}_{suffix}".format(**model_name_parts)
 if args.pretrained_model:
     default_model_name = args.pretrained_model + '_pretrained_' + default_model_name
 args.model = args.model.format(**model_name_parts) if args.model else default_model_name
