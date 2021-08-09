@@ -86,7 +86,7 @@ class A2CAlgo(BaseAlgo):
 					extra_predictions = model_results['extra_predictions']
 
 					entropy = dist.entropy().mean()
-					policy_loss = -(-dist.log_prob(sb.action) * sb.advantage).mean()
+					policy_loss = -(dist.log_prob(sb.action) * sb.advantage).mean()
 					value_loss = (value - sb.returnn).pow(2).mean()
 					loss = policy_loss - self.entropy_coef * entropy + self.value_loss_coef * value_loss
 
