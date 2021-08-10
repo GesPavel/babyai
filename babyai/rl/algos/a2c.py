@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 
 
-from babyai.rl.algos.base import BaseAlgo
+from babyai.rl.algos.base import BaseAlgo, KFACOptimizer
 
 
 class A2CAlgo(BaseAlgo):
